@@ -31,6 +31,9 @@ jobs:
       - name: Generate
         run: yarn generate
 
+      - name: Fix gh-pages CNAME
+        run: echo 'projects.svaltek.xyz' > ./dist/CNAME
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
