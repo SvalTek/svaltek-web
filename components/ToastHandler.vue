@@ -17,7 +17,6 @@ export default {
         const toast = mutation.payload
         const toastId = state.AllToasts.length.toString()
         toast.id = toastId
-        console.log(`creating toast id: ${toastId}`)
         this.makeToast(toast)
       }
     })
@@ -26,7 +25,6 @@ export default {
     this.$store.subscribe((mutation, state) => {
       if (mutation.type === 'removeToast') {
         const toastId = mutation.payload
-        console.log(`removing toast id: ${toastId}`)
         this.destroyToast(toastId)
       }
     })
