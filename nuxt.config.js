@@ -47,6 +47,8 @@ export default {
     '@nuxtjs/axios',
     // https://go.nuxtjs.dev/content
     '@nuxt/content',
+    // https://www.npmjs.com/package/nuxt-highlightjs
+    'nuxt-highlightjs'
   ],
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
@@ -56,8 +58,18 @@ export default {
   },
 
   // Content module configuration: https://go.nuxtjs.dev/config-content
-  content: {},
+  content: {
+    // Only search in title and description
+    fullTextSearchFields: ['title', 'description']
+  },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
+  generate: {
+    async routes() {
+      const { $content } = require('@nuxt/content')
+      const files = await $content({ deep: true }).only(['path']).fetch()
+      return files.map(file => file.path === '/index' ? '/' : file.path)
+    }
+  }
 }

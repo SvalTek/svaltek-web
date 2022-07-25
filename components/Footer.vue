@@ -90,5 +90,6 @@ export default {
 <style scoped>
 #status-bar {
   color: azure;
+  max-height: 64px;
 }
 </style>

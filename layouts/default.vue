@@ -12,7 +12,9 @@
         </b-col>
       </b-row>
       <!-- Content -->
+      <b-row class="pageContent">
       <Nuxt />
+      </b-row>
       <!-- Footer -->
       <Footer />
     </b-container>
@@ -27,3 +29,10 @@ export default Vue.extend({
   name: 'DefaultLayout',
 })
 </script>
+
+<style lang="scss">
+  .pageContent {
+    margin-bottom: 64px;
+    margin-left: 2%;
+  }
+</style>
