@@ -97,3 +97,8 @@ sw.*
 
 # Github files
 .github
+
+# ignore assets,static and content dirs
+assets/
+static/
+content/
