@@ -59,6 +59,15 @@
  */
 
 
+/**
+    @license MIT
+    
+    Copyright © 2017-2018 Benoit Giannangeli
+    Copyright © 2017-2018 Daurnimator
+    Copyright © 1994–2017 Lua.org, PUC-Rio.
+    */
+
+
 /*!
   * vue-router v3.5.4
   * (c) 2022 Evan You
@@ -76,12 +85,3 @@
  * (c) 2021 Evan You
  * @license MIT
  */
-
-
-/**
-    @license MIT
-    
-    Copyright © 2017-2018 Benoit Giannangeli
-    Copyright © 2017-2018 Daurnimator
-    Copyright © 1994–2017 Lua.org, PUC-Rio.
-    */
