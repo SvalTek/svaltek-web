@@ -23,7 +23,7 @@
     "glob-parent": "^5.1.2",
     "nuxt": "^2.15.8",
     "nuxt-highlightjs": "^1.0.3",
-    "parse-path": "^5.0.0",
+    "parse-path": "^7.0.0",
     "parse-url": "^8.1.0",
     "ufo": "^0.8.5",
     "vue": "^2.7.10",
