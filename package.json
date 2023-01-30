@@ -15,7 +15,7 @@
     "clean-unix": "rm -rf ./node_modules ./.nuxt ./dist"
   },
   "dependencies": {
-    "@nuxt/content": "^1.15.1",
+    "@nuxt/content": "^2.4.2",
     "@nuxtjs/axios": "^5.13.6",
     "bootstrap": "^4.6.1",
     "bootstrap-vue": "^2.21.2",
