@@ -21,7 +21,7 @@
     "bootstrap-vue": "^2.21.2",
     "core-js": "^3.25.3",
     "glob-parent": "^5.1.2",
-    "nuxt": "^2.15.8",
+    "nuxt": "^3.1.2",
     "nuxt-highlightjs": "^1.0.3",
     "parse-path": "^5.0.0",
     "parse-url": "^8.1.0",
