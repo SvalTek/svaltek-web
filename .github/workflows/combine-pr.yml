@@ -42,97 +42,123 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const pulls = await github.paginate('GET /repos/:owner/:repo/pulls', {
-                owner: context.repo.owner,
-                repo: context.repo.repo
+              owner: context.repo.owner,
+              repo: context.repo.repo
             });
             let branchesAndPRStrings = [];
-            let skippedPRsDueToNoStatus = [];
-            let mergeFailedPRs = [];
             let baseBranch = null;
             let baseBranchSHA = null;
             for (const pull of pulls) {
-                const branch = pull['head']['ref'];
-                console.log('Pull for branch: ' + branch);
-                if (branch.startsWith('${{ github.event.inputs.branchPrefix }}')) {
+              const branch = pull['head']['ref'];
+              console.log('Pull for branch: ' + branch);
+              if (branch.startsWith('${{ github.event.inputs.branchPrefix }}')) {
                 console.log('Branch matched prefix: ' + branch);
                 let statusOK = true;
                 if(${{ github.event.inputs.mustBeGreen }}) {
-                    console.log('Checking green status: ' + branch);
-                    const stateQuery = `query($owner: String!, $repo: String!, $pull_number: Int!) {
+                  console.log('Checking green status: ' + branch);
+                  const stateQuery = `query($owner: String!, $repo: String!, $pull_number: Int!) {
                     repository(owner: $owner, name: $repo) {
-                        pullRequest(number:$pull_number) {
+                      pullRequest(number:$pull_number) {
                         commits(last: 1) {
-                            nodes {
+                          nodes {
                             commit {
-                                statusCheckRollup {
+                              statusCheckRollup {
                                 state
-                                }
+                              }
                             }
-                            }
+                          }
                         }
-                        }
+                      }
                     }
-                    }`
-                    const vars = {
+                  }`
+                  const vars = {
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     pull_number: pull['number']
-                    };
-                    const result = await github.graphql(stateQuery, vars);
-                    const [{ commit }] = result.repository.pullRequest.commits.nodes;
-                    if (commit.statusCheckRollup) {
+                  };
+                  const result = await github.graphql(stateQuery, vars);
+                  const [{ commit }] = result.repository.pullRequest.commits.nodes;
+                  if (commit.statusCheckRollup) {
                     const state = commit.statusCheckRollup.state;
                     console.log('Validating status: ' + state);
                     if(state != 'SUCCESS') {
-                        console.log('Discarding ' + branch + ' with status ' + state);
-                        mergeFailedPRs.push('#' + pull['number'] + ' ' + pull['title']);
-                        statusOK = false;
+                      console.log('Discarding ' + branch + ' with status ' + state);
+                      statusOK = false;
                     }
-                    } else {
-                    console.log('No statusCheckRollup for ' + branch + ', skipping for manual review');
-                    skippedPRsDueToNoStatus.push('#' + pull['number'] + ' ' + pull['title']);
-                    statusOK = false;
-                    }
+                  } else {
+                    console.log('No statusCheckRollup for ' + branch + ', handling as per your logic');
+                    // Decide how to handle PRs without a statusCheckRollup here
+                    // For example, to treat them as failures, set statusOK to false
+                    // statusOK = false;
+                    // Or, to ignore this condition and proceed, just don't set statusOK to false
+                  }
                 }
                 console.log('Checking labels: ' + branch);
                 const labels = pull['labels'];
                 for(const label of labels) {
-                    const labelName = label['name'];
-                    console.log('Checking label: ' + labelName);
-                    if(labelName == '${{ github.event.inputs.ignoreLabel }}') {
+                  const labelName = label['name'];
+                  console.log('Checking label: ' + labelName);
+                  if(labelName == '${{ github.event.inputs.ignoreLabel }}') {
                     console.log('Discarding ' + branch + ' with label ' + labelName);
                     statusOK = false;
-                    }
+                  }
                 }
                 if (statusOK) {
-                    console.log('Adding branch to array: ' + branch);
-                    const prString = '#' + pull['number'] + ' ' + pull['title'];
-                    branchesAndPRStrings.push({ branch, prString });
-                    baseBranch = pull['base']['ref'];
-                    baseBranchSHA = pull['base']['sha'];
+                  console.log('Adding branch to array: ' + branch);
+                  const prString = '#' + pull['number'] + ' ' + pull['title'];
+                  branchesAndPRStrings.push({ branch, prString });
+                  baseBranch = pull['base']['ref'];
+                  baseBranchSHA = pull['base']['sha'];
                 }
-                }
+              }
             }
-            if (branchesAndPRStrings.length == 0 && skippedPRsDueToNoStatus.length == 0) {
-                core.setFailed('No PRs/branches matched criteria');
-                return;
+            if (branchesAndPRStrings.length == 0) {
+              core.setFailed('No PRs/branches matched criteria');
+              return;
             }
-            
-            let combinedPRs = branchesAndPRStrings.map(b => b.prString);
-            let body = '✅ This PR was created by the Combine PRs action by combining the following PRs:\n' + combinedPRs.join('\n');
-            if (mergeFailedPRs.length > 0) {
-                body += '\n\n⚠️ The following PRs were left out due to merge conflicts:\n' + mergeFailedPRs.join('\n');
-            }
-            if (skippedPRsDueToNoStatus.length > 0) {
-                body += '\n\n🔍 The following PRs were skipped and require manual review due to missing status checks:\n' + skippedPRsDueToNoStatus.join('\n');
-            }
-            
-            await github.rest.pulls.create({
+            try {
+              await github.rest.git.createRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                title: 'Combined PR',
-                head: '${{ github.event.inputs.combineBranchName }}',
-                base: baseBranch,
-                body: body
-            });
+                ref: 'refs/heads/' + '${{ github.event.inputs.combineBranchName }}',
+                sha: baseBranchSHA
+              });
+            } catch (error) {
+              console.log(error);
+              core.setFailed('Failed to create combined branch - maybe a branch by that name already exists?');
+              return;
+            }
             
+            let combinedPRs = [];
+            let mergeFailedPRs = [];
+            for(const { branch, prString } of branchesAndPRStrings) {
+              try {
+                await github.rest.repos.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  base: '${{ github.event.inputs.combineBranchName }}',
+                  head: branch,
+                });
+                console.log('Merged branch ' + branch);
+                combinedPRs.push(prString);
+              } catch (error) {
+                console.log('Failed to merge branch ' + branch);
+                mergeFailedPRs.push(prString);
+              }
+            }
+            
+            console.log('Creating combined PR');
+            const combinedPRsString = combinedPRs.join('\n');
+            let body = '✅ This PR was created by the Combine PRs action by combining the following PRs:\n' + combinedPRsString;
+            if(mergeFailedPRs.length > 0) {
+              const mergeFailedPRsString = mergeFailedPRs.join('\n');
+              body += '\n\n⚠️ The following PRs were left out due to merge conflicts:\n' + mergeFailedPRsString
+            }
+            await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Combined PR',
+              head: '${{ github.event.inputs.combineBranchName }}',
+              base: baseBranch,
+              body: body
+            });
