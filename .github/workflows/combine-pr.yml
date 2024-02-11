@@ -47,6 +47,7 @@ jobs:
             });
             let branchesAndPRStrings = [];
             let skippedPRsDueToNoStatus = [];
+            let mergeFailedPRs = [];
             let baseBranch = null;
             let baseBranchSHA = null;
             for (const pull of pulls) {
@@ -84,6 +85,7 @@ jobs:
                     console.log('Validating status: ' + state);
                     if(state != 'SUCCESS') {
                         console.log('Discarding ' + branch + ' with status ' + state);
+                        mergeFailedPRs.push('#' + pull['number'] + ' ' + pull['title']);
                         statusOK = false;
                     }
                     } else {
@@ -133,3 +135,4 @@ jobs:
                 base: baseBranch,
                 body: body
             });
+            
