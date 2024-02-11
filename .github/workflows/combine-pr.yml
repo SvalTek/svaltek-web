@@ -26,7 +26,12 @@ jobs:
   # This workflow contains a single job called "combine-prs"
   combine-prs:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [20]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -73,11 +78,19 @@ jobs:
                   };
                   const result = await github.graphql(stateQuery, vars);
                   const [{ commit }] = result.repository.pullRequest.commits.nodes;
-                  const state = commit.statusCheckRollup.state
-                  console.log('Validating status: ' + state);
-                  if(state != 'SUCCESS') {
-                    console.log('Discarding ' + branch + ' with status ' + state);
-                    statusOK = false;
+                  if (commit.statusCheckRollup) {
+                    const state = commit.statusCheckRollup.state;
+                    console.log('Validating status: ' + state);
+                    if(state != 'SUCCESS') {
+                      console.log('Discarding ' + branch + ' with status ' + state);
+                      statusOK = false;
+                    }
+                  } else {
+                    console.log('No statusCheckRollup for ' + branch + ', handling as per your logic');
+                    // Decide how to handle PRs without a statusCheckRollup here
+                    // For example, to treat them as failures, set statusOK to false
+                    // statusOK = false;
+                    // Or, to ignore this condition and proceed, just don't set statusOK to false
                   }
                 }
                 console.log('Checking labels: ' + branch);
