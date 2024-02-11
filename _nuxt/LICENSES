@@ -1,6 +1,15 @@
+/**
+    @license MIT
+    
+    Copyright © 2017-2018 Benoit Giannangeli
+    Copyright © 2017-2018 Daurnimator
+    Copyright © 1994–2017 Lua.org, PUC-Rio.
+    */
+
+
 /*!
- * Vue.js v2.7.10
- * (c) 2014-2022 Evan You
+ * Vue.js v2.7.16
+ * (c) 2014-2023 Evan You
  * Released under the MIT License.
  */
 
@@ -9,15 +18,6 @@
  * (c) 2021 Evan You
  * @license MIT
  */
-
-
-/**
-    @license MIT
-    
-    Copyright © 2017-2018 Benoit Giannangeli
-    Copyright © 2017-2018 Daurnimator
-    Copyright © 1994–2017 Lua.org, PUC-Rio.
-    */
 
 
 /*!
