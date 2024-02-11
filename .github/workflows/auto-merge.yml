@@ -2,6 +2,7 @@ name: auto-merge
 
 on:
   pull_request:
+  workworkflow_dispatch:
 
 jobs:
   auto-merge:
