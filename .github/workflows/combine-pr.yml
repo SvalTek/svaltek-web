@@ -116,9 +116,7 @@ jobs:
                 return;
             }
             
-            // Your existing logic for creating the combined branch and merging PRs goes here.
-            
-            // Adjust the body to include skipped PRs due to no status check
+            let combinedPRs = branchesAndPRStrings.map(b => b.prString);
             let body = '✅ This PR was created by the Combine PRs action by combining the following PRs:\n' + combinedPRs.join('\n');
             if (mergeFailedPRs.length > 0) {
                 body += '\n\n⚠️ The following PRs were left out due to merge conflicts:\n' + mergeFailedPRs.join('\n');
@@ -135,4 +133,3 @@ jobs:
                 base: baseBranch,
                 body: body
             });
-            
